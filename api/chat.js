@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     }
 
     // Define your custom assistant model ID
-    const customModelId = "your-custom-model-id";  // Replace this with your specific model ID
+    const customModelId = "asst_O8bibYy4d6YYRmXSjOFpTqKW";  // Replace this with your specific model ID
     console.log(customModelId);
 
     // Call OpenAI API using the custom assistant model
