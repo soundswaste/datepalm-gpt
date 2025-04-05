@@ -10,31 +10,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Function to make API call to OpenAI Assistant
   const getAssistantResponse = async (userInput) => {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            { role: 'system', content: 'You are a helpful assistant offering advice for early dating.' },
-            { role: 'user', content: userInput },
-          ],
-        }),
-      });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer YOUR_OPENAI_API_KEY`, // Replace with your actual OpenAI API key
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'asst_O8bibYy4d6YYRmXSjOFpTqKW',  // Replace this with your assistant's ID or model identifier
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant offering advice for early dating.' },
+          { role: 'user', content: userInput },
+        ],
+      }),
+    });
 
-      const data = await response.json();
-      const assistantReply = data.choices[0].message.content;
+    const data = await response.json();
+    const assistantReply = data.choices[0].message.content;
 
-      return assistantReply;
-    } catch (error) {
-      console.error('Error:', error);
-      return "Sorry, I couldn't get a response right now.";
-    }
-  };
+    return assistantReply;
+  } catch (error) {
+    console.error('Error:', error);
+    return "Sorry, I couldn't get a response right now.";
+  }
+};
+
 
   // Display a message in the chat
   const displayMessage = (message, isUser = false) => {
