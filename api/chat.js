@@ -1,86 +1,58 @@
 export default async function handler(req, res) {
-  const { message } = req.body;
-  const ASSISTANT_ID = 'asst_XXXXXXXXXXXX';
-  const apiKey = process.env.OPENAI_API_KEY;
-console.log("Environment variables:", process.env);      
-console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
-
-
-  // Create a thread
-  const threadRes = await fetch("https://api.openai.com/v1/threads", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "assistants=v1",
-      "Content-Type": "application/json"
+  try {
+    // Ensure the API key exists
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'API key is missing' });
     }
-  });
-  const thread = await threadRes.json();
 
-  // If not init, send user message
-  if (message !== "init") {
-    console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
+    // Retrieve the user's message (from the request body)
+    const userMessage = req.body.message;
 
-    await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
+    // Ensure the user message exists
+    if (!userMessage) {
+      return res.status(400).json({ error: 'No message provided' });
+    }
+
+    // Create the conversation thread if not present
+    let thread = req.body.thread || [];
+
+    // Add the user's message to the conversation thread
+    thread.push({ role: "user", content: userMessage });
+
+    // Make the API call to OpenAI with the conversation thread
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        "OpenAI-Beta": "assistants=v1",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        role: "user",
-        content: message
+        model: "gpt-3.5-turbo", // Or use the model you're working with
+        messages: thread
       })
     });
+
+    // Handle OpenAI response errors
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error from OpenAI:", errorData);
+      return res.status(500).json({ error: 'Error from OpenAI API', details: errorData });
+    }
+
+    // Parse OpenAI's response
+    const data = await response.json();
+    const assistantReply = data.choices[0].message.content;
+
+    // Add the assistant's reply to the thread
+    thread.push({ role: "assistant", content: assistantReply });
+
+    // Respond back to the client with the assistant's reply and the updated thread
+    return res.status(200).json({ reply: assistantReply, thread: thread });
+
+  } catch (error) {
+    // Catch and log any unexpected errors
+    console.error("Error in /api/chat:", error);
+    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
-
-  // Run assistant
-  const runRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "assistants=v1",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ assistant_id: ASSISTANT_ID })
-  });
-
-  const run = await runRes.json();
-
-  // Poll up to 20 seconds
-const maxWaitTime = 20000; // 20 seconds
-const start = Date.now();
-let result;
-
-while (Date.now() - start < maxWaitTime) {
-  const check = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "assistants=v1"
-    }
-  });
-
-  result = await check.json();
-  if (result.status === 'completed') break;
-  await new Promise(resolve => setTimeout(resolve, 1500));
-}
-
-if (result.status !== 'completed') {
-  return res.status(200).json({ reply: "Sorry, I'm taking too long to think right now. Try asking again!" });
-}
-
-
-  // Get messages
-  const messagesRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "assistants=v1"
-    }
-  });
-
-  const messagesData = await messagesRes.json();
-  const lastMsg = messagesData.data.find(m => m.role === "assistant");
-
-  res.status(200).json({ reply: lastMsg.content[0].text.value });
 }
