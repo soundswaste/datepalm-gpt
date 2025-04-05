@@ -9,6 +9,7 @@ export default async function handler(req, res) {
 
     // Define your custom assistant model ID
     const customModelId = "your-custom-model-id";  // Replace this with your specific model ID
+    console.log(customModelId);
 
     // Call OpenAI API using the custom assistant model
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
