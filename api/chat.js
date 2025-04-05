@@ -2,7 +2,8 @@ export default async function handler(req, res) {
   const { message } = req.body;
   const ASSISTANT_ID = 'asst_XXXXXXXXXXXX';
   const apiKey = process.env.OPENAI_API_KEY;
-      console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
+console.log("Environment variables:", process.env);      
+console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
 
 
   // Create a thread
