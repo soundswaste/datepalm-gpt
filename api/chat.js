@@ -1,11 +1,9 @@
-// /api/chat.js (Node.js, Vercel-compatible)
 export default async function handler(req, res) {
   const { message } = req.body;
-
-  const ASSISTANT_ID = 'asst_O8bibYy4d6YYRmXSjOFpTqKW'; // Replace with your assistant ID
+  const ASSISTANT_ID = 'asst_XXXXXXXXXXXX';
   const apiKey = process.env.OPENAI_API_KEY;
 
-  // Create a new thread
+  // Create a thread
   const threadRes = await fetch("https://api.openai.com/v1/threads", {
     method: "POST",
     headers: {
@@ -16,21 +14,23 @@ export default async function handler(req, res) {
   });
   const thread = await threadRes.json();
 
-  // Add user message to thread
-  await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "OpenAI-Beta": "assistants=v1",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      role: "user",
-      content: message
-    })
-  });
+  // If not init, send user message
+  if (message !== "init") {
+    await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "OpenAI-Beta": "assistants=v1",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        role: "user",
+        content: message
+      })
+    });
+  }
 
-  // Run the assistant
+  // Run assistant
   const runRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
     method: "POST",
     headers: {
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
 
   const run = await runRes.json();
 
-  // Poll until run completes
+  // Poll for result
   let result;
   while (true) {
     const check = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
