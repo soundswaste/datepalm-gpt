@@ -2,7 +2,7 @@
 export default async function handler(req, res) {
   const { message } = req.body;
 
-  const ASSISTANT_ID = 'asst_XXXXXXXXXXXX'; // Replace with your assistant ID
+  const ASSISTANT_ID = 'asst_O8bibYy4d6YYRmXSjOFpTqKW'; // Replace with your assistant ID
   const apiKey = process.env.OPENAI_API_KEY;
 
   // Create a new thread
