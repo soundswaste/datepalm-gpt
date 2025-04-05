@@ -43,19 +43,28 @@ export default async function handler(req, res) {
 
   const run = await runRes.json();
 
-  // Poll for result
-  let result;
-  while (true) {
-    const check = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "OpenAI-Beta": "assistants=v1"
-      }
-    });
-    result = await check.json();
-    if (result.status === 'completed') break;
-    await new Promise(resolve => setTimeout(resolve, 1500));
-  }
+  // Poll up to 20 seconds
+const maxWaitTime = 20000; // 20 seconds
+const start = Date.now();
+let result;
+
+while (Date.now() - start < maxWaitTime) {
+  const check = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1"
+    }
+  });
+
+  result = await check.json();
+  if (result.status === 'completed') break;
+  await new Promise(resolve => setTimeout(resolve, 1500));
+}
+
+if (result.status !== 'completed') {
+  return res.status(200).json({ reply: "Sorry, I'm taking too long to think right now. Try asking again!" });
+}
+
 
   // Get messages
   const messagesRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
