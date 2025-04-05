@@ -1,18 +1,72 @@
+// /api/chat.js (Node.js, Vercel-compatible)
 export default async function handler(req, res) {
-  const userInput = req.body.message;
+  const { message } = req.body;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const ASSISTANT_ID = 'asst_XXXXXXXXXXXX'; // Replace with your assistant ID
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  // Create a new thread
+  const threadRes = await fetch("https://api.openai.com/v1/threads", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1",
+      "Content-Type": "application/json"
+    }
+  });
+  const thread = await threadRes.json();
+
+  // Add user message to thread
+  await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1",
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: userInput }]
+      role: "user",
+      content: message
     })
   });
 
-  const data = await response.json();
-  res.status(200).json({ reply: data.choices[0].message.content });
+  // Run the assistant
+  const runRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ assistant_id: ASSISTANT_ID })
+  });
+
+  const run = await runRes.json();
+
+  // Poll until run completes
+  let result;
+  while (true) {
+    const check = await fetch(`https://api.openai.com/v1/threads/${thread.id}/runs/${run.id}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "OpenAI-Beta": "assistants=v1"
+      }
+    });
+    result = await check.json();
+    if (result.status === 'completed') break;
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
+
+  // Get messages
+  const messagesRes = await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1"
+    }
+  });
+
+  const messagesData = await messagesRes.json();
+  const lastMsg = messagesData.data.find(m => m.role === "assistant");
+
+  res.status(200).json({ reply: lastMsg.content[0].text.value });
 }
