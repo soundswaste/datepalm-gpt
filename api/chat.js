@@ -2,6 +2,8 @@ export default async function handler(req, res) {
   const { message } = req.body;
   const ASSISTANT_ID = 'asst_XXXXXXXXXXXX';
   const apiKey = process.env.OPENAI_API_KEY;
+      console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
+
 
   // Create a thread
   const threadRes = await fetch("https://api.openai.com/v1/threads", {
