@@ -16,6 +16,8 @@ export default async function handler(req, res) {
 
   // If not init, send user message
   if (message !== "init") {
+    console.log("Using API key:", apiKey ? "✅ exists" : "❌ missing");
+
     await fetch(`https://api.openai.com/v1/threads/${thread.id}/messages`, {
       method: "POST",
       headers: {
