@@ -6,89 +6,66 @@
   <title>datepalm</title>
   <style>
     body {
-  font-family: sans-serif;
-  background: #fff;
-  color: #111;
-  margin: 0;
-  padding: 20px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-header h1 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-.highlight {
-  color: #ec4899; /* pink-500 */
-}
-
-#chat-box {
-  border: 1px solid #ccc;
-  border-radius: 1rem;
-  padding: 16px;
-  height: 60vh;
-  overflow-y: auto;
-  background: #f9f9f9;
-}
-
-.message {
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 0.75rem;
-  max-width: 90%;
-}
-
-.user {
-  background-color: #fce7f3; /* pink-100 */
-  align-self: flex-start;
-}
-
-.assistant {
-  background-color: #e5e7eb; /* gray-200 */
-  align-self: flex-start;
-}
-
-.input-area {
-  display: flex;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-textarea {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  resize: none;
-}
-
-button {
-  background-color: #ec4899;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
+      font-family: "Helvetica Neue", sans-serif;
+      margin: 0;
+      background: #f8f8f8;
+      color: #222;
+      padding: 1rem 2rem;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: #777;
+      margin-bottom: 2rem;
+    }
+    #chat {
+      max-width: 600px;
+      margin-bottom: 2rem;
+    }
+    .message {
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+    .assistant {
+      color: #444;
+    }
+    .user {
+      color: #1a73e8;
+    }
+    #controls {
+      display: flex;
+      gap: 1rem;
+    }
+    #user-input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #send-btn {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1><span class="highlight">datepalm</span> – sage advice for early dating</h1>
-  </header>
+  <div class="logo">datepalm</div>
+  <div class="subtitle">sage advice for early dating</div>
 
-  <main id="chat-box"></main>
+  <div id="chat"></div>
 
-  <div class="input-area">
-    <textarea id="user-input" placeholder="Ask something about your new connection..."></textarea>
+  <div id="controls">
+    <input id="user-input" placeholder="Say something..." />
     <button id="send-btn">Send</button>
   </div>
 
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>
