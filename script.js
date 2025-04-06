@@ -1,77 +1,40 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const startBtn = document.getElementById('startBtn');
-  const chatContainer = document.getElementById('chatContainer');
+const chatEl = document.getElementById("chat");
+const inputEl = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-US';
-  recognition.interimResults = false;
-
-  const openaiApiKey = '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'; // Replace with your actual OpenAI API key
-
-  // Function to make API call to OpenAI Assistant
-  const getAssistantResponse = async (userInput) => {
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer YOUR_OPENAI_API_KEY`, // Replace with your actual OpenAI API key
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'asst_O8bibYy4d6YYRmXSjOFpTqKW',  // Replace this with your assistant's ID or model identifier
-        messages: [
-          { role: 'system', content: 'You are a helpful assistant offering advice for early dating.' },
-          { role: 'user', content: userInput },
-        ],
-      }),
-    });
-
-    const data = await response.json();
-    const assistantReply = data.choices[0].message.content;
-
-    return assistantReply;
-  } catch (error) {
-    console.error('Error:', error);
-    return "Sorry, I couldn't get a response right now.";
-  }
+const addMessage = (role, content) => {
+  const msg = document.createElement("div");
+  msg.className = `message ${role}`;
+  msg.textContent = content;
+  chatEl.appendChild(msg);
+  chatEl.scrollTop = chatEl.scrollHeight;
 };
 
+// Load assistant intro on page load
+window.addEventListener("DOMContentLoaded", async () => {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: "Say hi and ask how I can help with early dating communication"
+    }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
+});
 
-  // Display a message in the chat
-  const displayMessage = (message, isUser = false) => {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add(isUser ? 'user-message' : 'assistant-message');
-    messageDiv.textContent = message;
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-  };
+sendBtn.addEventListener("click", async () => {
+  const userText = inputEl.value.trim();
+  if (!userText) return;
 
-  // Initialize chat with assistant's first message
-  const initializeChat = async () => {
-    const assistantIntro = "Hello! I'm Datepalm, here to help with your early dating communication. How can I assist you today?";
-    displayMessage(assistantIntro);
+  addMessage("user", userText);
+  inputEl.value = "";
 
-    // Wait for user response
-    startBtn.textContent = "Start talking";
-  };
-
-  // Start speech recognition and send user input to OpenAI
-  startBtn.onclick = () => {
-    recognition.start();
-    startBtn.textContent = "Listening...";
-  };
-
-  recognition.onresult = async (event) => {
-    const userText = event.results[0][0].transcript;
-    displayMessage(userText, true); // Display user message
-
-    // Get assistant's response
-    const assistantReply = await getAssistantResponse(userText);
-    displayMessage(assistantReply); // Display assistant's response
-
-    startBtn.textContent = "Start talking"; // Reset button text
-  };
-
-  // Initialize chat on page load
-  initializeChat();
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: userText }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
 });
