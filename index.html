@@ -12,15 +12,28 @@
       color: #222;  
       padding: 1rem 2rem;
     }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 1.5rem;
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
     }
+
+    .logo {
+      font-size: 2rem;
+    }
+
+    .title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
     .subtitle {
       font-size: 0.9rem;
-      color: #777;
-      margin-bottom: 2rem;
+      margin: 0;
+      margin-top: 2px;
+      color: #666;
     }
     #chat {
       max-width: 600px;
@@ -99,8 +112,11 @@
   </style>
 </head>
 <body>
-  <div class="logo">datepalm</div>
-  <div class="subtitle">sage advice for early dating</div>
+  <header class="header">
+    <div class="logo">🌴</div>
+    <h1 class="title">datepalm</h1>
+    <p class="subtitle">sage advice for early dating</p>
+  </header>
 
   <div id="chat"></div>
 
