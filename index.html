@@ -1,82 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datepalm - Sage Advice for Early Dating</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>datepalm</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      padding: 20px;
+      font-family: "Helvetica Neue", sans-serif;
       margin: 0;
+      background: #f8f8f8;
+      color: #222;
+      padding: 1rem 2rem;
     }
-
-    #logo {
-      font-size: 24px;
+    .logo {
+      font-size: 1.5rem;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 1.5rem;
     }
-
-    #chat-container {
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
+    .subtitle {
+      font-size: 0.9rem;
+      color: #777;
+      margin-bottom: 2rem;
+    }
+    #chat {
       max-width: 600px;
-      margin: 0 auto;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
     }
-
-    #chat-log {
-      max-height: 400px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
-
     .message {
-      margin-bottom: 10px;
+      margin-bottom: 1rem;
+      line-height: 1.4;
     }
-
     .assistant {
-      color: #007bff;
-      font-weight: bold;
+      color: #444;
     }
-
     .user {
-      color: #28a745;
-      font-weight: bold;
+      color: #1a73e8;
     }
-
-    #start-talking-btn {
-      padding: 12px 24px;
-      font-size: 18px;
-      background-color: #28a745;
+    #controls {
+      display: flex;
+      gap: 1rem;
+    }
+    #user-input {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #send-btn {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #1a73e8;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
-      width: 100%;
-      text-align: center;
     }
-
-    #start-talking-btn:disabled {
-      background-color: #6c757d;
-      cursor: not-allowed;
-    }
-
   </style>
 </head>
 <body>
+  <div class="logo">datepalm</div>
+  <div class="subtitle">sage advice for early dating</div>
 
-  <div id="logo">datepalm - Sage Advice for Early Dating</div>
+  <div id="chat"></div>
 
-  <div id="chat-container">
-    <div id="chat-log"></div>
-    <button id="start-talking-btn">Start talking</button>
+  <div id="controls">
+    <input id="user-input" placeholder="Say something..." />
+    <button id="send-btn">Send</button>
   </div>
 
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>
