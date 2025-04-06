@@ -42,13 +42,24 @@ recognition.addEventListener("end", () => {
 
 recognition.addEventListener("result", (e) => {
   transcript = e.results[0][0].transcript;
+
+  // Remove old preview if exists
+  const oldPreview = document.querySelector(".message.preview");
+  if (oldPreview) oldPreview.remove();
+
+  // Add new preview message
   const preview = document.createElement("div");
-  preview.className = "message preview";
-  preview.textContent = transcript;
+  preview.className = "message user preview";
+  preview.innerHTML = `
+    <div class="text">${transcript}</div>
+    <div class="hint">Click 'Send' to send this message</div>
+  `;
   chatEl.appendChild(preview);
   chatEl.scrollTop = chatEl.scrollHeight;
+
   sendBtn.disabled = false;
 });
+
 
 speakBtn.addEventListener("click", () => {
   recognition.start();

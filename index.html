@@ -26,16 +26,7 @@
       max-width: 600px;
       margin-bottom: 2rem;
     }
-    .message {
-      margin-bottom: 1rem;
-      line-height: 1.4;
-    }
-    .assistant {
-      color: #444;
-    }
-    .user {
-      color: #1a73e8;
-    }
+    
     #controls {
       display: flex;
       gap: 1rem;
@@ -72,10 +63,38 @@
       cursor: not-allowed;
     }
 
-    .message.preview {
-      font-style: italic;
-      color: gray;
+    .message {
+      padding: 10px 15px;
+      border-radius: 12px;
+      margin: 8px 0;
+      max-width: 80%;
+      white-space: pre-wrap;
     }
+
+    .message.user {
+      background-color: #d1e7dd; /* light green */
+      align-self: flex-start;
+    }
+
+    .message.assistant {
+      background-color: #f8d7da; /* light red/pink */
+      align-self: flex-start;
+    }
+
+    .message.preview {
+      background-color: white !important;
+      border: 1px dashed #ccc;
+      font-style: italic;
+      opacity: 0.9;
+      position: relative;
+    }
+
+    .message.preview .hint {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 4px;
+    }
+
 
   </style>
 </head>
