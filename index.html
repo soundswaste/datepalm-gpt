@@ -1,97 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datepalm - Sage Advice for Early Dating</title>
-
-  <!-- Include Google Font for 'Inter' -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>datepalm</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f7f7f7;
-    }
+  font-family: sans-serif;
+  background: #fff;
+  color: #111;
+  margin: 0;
+  padding: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
 
-    /* Container for chatbox */
-    #chatContainer {
-      width: 100%;
-      max-width: 600px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      overflow-y: auto;
-      height: 500px;
-    }
+header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  text-align: left;
+}
 
-    /* Styling for the logo */
-    #logo {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #333;
-      text-align: center;
-    }
+.highlight {
+  color: #ec4899; /* pink-500 */
+}
 
-    /* Messages from the user and assistant */
-    .user-message, .assistant-message {
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 80%;
-    }
+#chat-box {
+  border: 1px solid #ccc;
+  border-radius: 1rem;
+  padding: 16px;
+  height: 60vh;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
 
-    .user-message {
-      background-color: #daf1ff;
-      text-align: right;
-      margin-left: auto;
-    }
+.message {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 0.75rem;
+  max-width: 90%;
+}
 
-    .assistant-message {
-      background-color: #f1f1f1;
-      text-align: left;
-    }
+.user {
+  background-color: #fce7f3; /* pink-100 */
+  align-self: flex-start;
+}
 
-    /* Input box */
-    #startBtn {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      text-align: center;
-      margin-top: 20px;
-    }
+.assistant {
+  background-color: #e5e7eb; /* gray-200 */
+  align-self: flex-start;
+}
 
-    #startBtn:hover {
-      background-color: #45a049;
-    }
+.input-area {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+textarea {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: none;
+}
+
+button {
+  background-color: #ec4899;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
+  <header>
+    <h1><span class="highlight">datepalm</span> – sage advice for early dating</h1>
+  </header>
 
-  <!-- Logo -->
-  <div id="logo">Datepalm - Sage Advice for Early Dating</div>
+  <main id="chat-box"></main>
 
-  <!-- Chat container -->
-  <div id="chatContainer">
-    <!-- Chat messages will be appended here -->
+  <div class="input-area">
+    <textarea id="user-input" placeholder="Ask something about your new connection..."></textarea>
+    <button id="send-btn">Send</button>
   </div>
 
-  <!-- Start button -->
-  <button id="startBtn">Start talking</button>
-
-  <!-- Include the script file -->
   <script src="script.js"></script>
-
 </body>
 </html>
