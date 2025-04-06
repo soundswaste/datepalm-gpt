@@ -1,54 +1,53 @@
-const chatEl = document.getElementById("chat");
-const inputEl = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
+const sendButton = document.getElementById('send-button');
+const userInput = document.getElementById('user-input');
+const chatLog = document.getElementById('chat-log');
+const thinkingMessage = document.getElementById('thinking'); // Thinking message element
 
-const addMessage = (role, content) => {
-  const msg = document.createElement("div");
-  msg.className = `message ${role}`;
-  msg.textContent = content;
-  chatEl.appendChild(msg);
-  chatEl.scrollTop = chatEl.scrollHeight;
-};
+function updateChatLog(content, sender) {
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message', sender);
+  messageDiv.textContent = content;
+  chatLog.appendChild(messageDiv);
+  chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+}
 
-const sendMessage = async (text) => {
-  addMessage("user", text);
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text }),
-  });
-  const data = await res.json();
-  addMessage("assistant", data.reply);
-};
+sendButton.addEventListener('click', async () => {
+  const message = userInput.value.trim();
+  
+  if (message) {
+    // Show the user's message
+    updateChatLog(message, 'user');
+    userInput.value = ''; // Clear the input field
 
-sendBtn.addEventListener("click", () => {
-  const text = inputEl.value.trim();
-  if (!text) return;
-  inputEl.value = "";
-  sendMessage(text);
-});
+    // Show "Thinking..." message before the assistant responds
+    thinkingMessage.style.display = 'block';
 
-// Voice Input (Web Speech API)
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = "en-US";
-recognition.interimResults = false;
-recognition.maxAlternatives = 1;
+    try {
+      // Call the /api/chat endpoint to get the assistant's response
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_message: message })
+      });
 
-// Trigger voice input when user presses Enter in input
-inputEl.addEventListener("focus", () => recognition.start());
-recognition.addEventListener("result", (e) => {
-  const transcript = e.results[0][0].transcript;
-  inputEl.value = transcript;
-  sendBtn.click();
-});
+      if (response.ok) {
+        const data = await response.json();
+        const assistantMessage = data.assistant_response || 'Sorry, I didn\'t catch that. Can you try again?';
 
-// Load assistant's greeting on page load
-window.addEventListener("DOMContentLoaded", async () => {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: "" }),
-  });
-  const data = await res.json();
-  addMessage("assistant", data.reply);
+        // Hide "Thinking..." and show the assistant's response
+        thinkingMessage.style.display = 'none';
+        updateChatLog(assistantMessage, 'assistant');
+      } else {
+        // Handle error response
+        thinkingMessage.style.display = 'none';
+        updateChatLog("There was an issue with the assistant. Please try again.", 'assistant');
+      }
+    } catch (error) {
+      console.error('Error fetching from /api/chat:', error);
+      thinkingMessage.style.display = 'none';
+      updateChatLog("Something went wrong! Please try again.", 'assistant');
+    }
+  }
 });
