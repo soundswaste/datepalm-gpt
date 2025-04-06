@@ -10,30 +10,44 @@ const addMessage = (role, content) => {
   chatEl.scrollTop = chatEl.scrollHeight;
 };
 
-// Load assistant intro on page load
+const sendMessage = async (text) => {
+  addMessage("user", text);
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
+};
+
+sendBtn.addEventListener("click", () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = "";
+  sendMessage(text);
+});
+
+// Voice Input (Web Speech API)
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = "en-US";
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+
+// Trigger voice input when user presses Enter in input
+inputEl.addEventListener("focus", () => recognition.start());
+recognition.addEventListener("result", (e) => {
+  const transcript = e.results[0][0].transcript;
+  inputEl.value = transcript;
+  sendBtn.click();
+});
+
+// Load assistant's greeting on page load
 window.addEventListener("DOMContentLoaded", async () => {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: "Say hi and ask how I can help with early dating communication"
-    }),
-  });
-  const data = await res.json();
-  addMessage("assistant", data.reply);
-});
-
-sendBtn.addEventListener("click", async () => {
-  const userText = inputEl.value.trim();
-  if (!userText) return;
-
-  addMessage("user", userText);
-  inputEl.value = "";
-
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: userText }),
+    body: JSON.stringify({ message: "" }),
   });
   const data = await res.json();
   addMessage("assistant", data.reply);
