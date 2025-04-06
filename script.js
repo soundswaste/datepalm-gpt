@@ -42,7 +42,8 @@ const sendMessage = async (text) => {
 // Voice Recognition
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "en-US";
-recognition.interimResults = false;
+recognition.continuous = true; // Allow continuous speech input
+recognition.interimResults = true; // Enable interim results
 recognition.maxAlternatives = 1;
 
 recognition.addEventListener("start", () => {
@@ -54,7 +55,7 @@ recognition.addEventListener("end", () => {
 });
 
 recognition.addEventListener("result", (e) => {
-  transcript = e.results[0][0].transcript;
+  transcript = e.results[e.resultIndex][0].transcript; //The transcription is now updated immediately as the user speaks (even while speaking)
 
   // Remove old preview if exists
   const oldPreview = document.querySelector(".message.preview");
@@ -84,6 +85,7 @@ sendBtn.addEventListener("click", () => {
   if (preview) preview.remove(); // Remove preview message
   sendMessage(transcript);
   transcript = "";
+  recognition.stop(); // stop listening after user clicks 'Send'
 });
 
 // Assistant greeting on load
