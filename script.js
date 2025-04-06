@@ -41,7 +41,8 @@ const sendMessage = async (text) => {
 // Voice Recognition
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "en-US";
-recognition.interimResults = false;
+recognition.continuous = true; //Enable continuous listening
+recognition.interimResults = true; //Allow interimResults to true (for real-time partial updates
 recognition.maxAlternatives = 1;
 
 recognition.addEventListener("start", () => {
@@ -53,17 +54,25 @@ recognition.addEventListener("end", () => {
 });
 
 recognition.addEventListener("result", (e) => {
-  transcript = e.results[0][0].transcript;
+  let interim = "";
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const result = e.results[i];
+    if (result.isFinal) {
+      transcript += result[0].transcript + " ";
+    } else {
+      interim += result[0].transcript;
+    }
+  }
 
   // Remove old preview if exists
   const oldPreview = document.querySelector(".message.preview");
   if (oldPreview) oldPreview.remove();
 
-  // Add new preview message
+  // Add updated preview message
   const preview = document.createElement("div");
   preview.className = "message user preview";
   preview.innerHTML = `
-    <div class="text">${transcript}</div>
+    <div class="text">${transcript + interim}</div>
     <div class="hint">Click 'Send' to send this message</div>
   `;
   chatEl.appendChild(preview);
