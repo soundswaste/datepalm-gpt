@@ -7,9 +7,9 @@ const addMessage = (role, content) => {
   msg.className = `message ${role}`;
   msg.textContent = content;
   chatEl.appendChild(msg);
-  chatEl.scrollTop = chatEl.scrollHeight;
+  chatEl.scrollTop = chatEl.scrollsHeight;
 };
-
+//test comments
 const sendMessage = async (text) => {
   addMessage("user", text);
   const res = await fetch("/api/chat", {
