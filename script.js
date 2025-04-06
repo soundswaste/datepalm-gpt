@@ -1,48 +1,68 @@
 const chatEl = document.getElementById("chat");
-const inputEl = document.getElementById("user-input");
+const speakBtn = document.getElementById("speak-btn");
 const sendBtn = document.getElementById("send-btn");
+
+let transcript = ""; // Holds the transcribed text
 
 const addMessage = (role, content) => {
   const msg = document.createElement("div");
   msg.className = `message ${role}`;
   msg.textContent = content;
   chatEl.appendChild(msg);
-  chatEl.scrollTop = chatEl.scrollsHeight;
+  chatEl.scrollTop = chatEl.scrollHeight;
 };
-//test comments
+
 const sendMessage = async (text) => {
   addMessage("user", text);
+  sendBtn.disabled = true;
+
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message: text }),
   });
+
   const data = await res.json();
   addMessage("assistant", data.reply);
 };
 
-sendBtn.addEventListener("click", () => {
-  const text = inputEl.value.trim();
-  if (!text) return;
-  inputEl.value = "";
-  sendMessage(text);
-});
-
-// Voice Input (Web Speech API)
+// Voice Recognition
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "en-US";
 recognition.interimResults = false;
 recognition.maxAlternatives = 1;
 
-// Trigger voice input when user presses Enter in input
-inputEl.addEventListener("focus", () => recognition.start());
-recognition.addEventListener("result", (e) => {
-  const transcript = e.results[0][0].transcript;
-  inputEl.value = transcript;
-  sendBtn.click();
+recognition.addEventListener("start", () => {
+  speakBtn.textContent = "🎙️ Listening... Click again to stop";
 });
 
-// Load assistant's greeting on page load
+recognition.addEventListener("end", () => {
+  speakBtn.textContent = "🎤 Click to Speak";
+});
+
+recognition.addEventListener("result", (e) => {
+  transcript = e.results[0][0].transcript;
+  const preview = document.createElement("div");
+  preview.className = "message preview";
+  preview.textContent = transcript;
+  chatEl.appendChild(preview);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  sendBtn.disabled = false;
+});
+
+speakBtn.addEventListener("click", () => {
+  recognition.start();
+});
+
+sendBtn.addEventListener("click", () => {
+  if (!transcript) return;
+  const preview = document.querySelector(".message.preview");
+  if (preview) preview.remove(); // Remove preview message
+  sendMessage(transcript);
+  transcript = "";
+});
+
+// Assistant greeting on load
 window.addEventListener("DOMContentLoaded", async () => {
   const res = await fetch("/api/chat", {
     method: "POST",
