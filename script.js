@@ -1,59 +1,54 @@
-const startTalkingBtn = document.getElementById('start-talking-btn');
-const chatLog = document.getElementById('chat-log');
+const chatEl = document.getElementById("chat");
+const inputEl = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-let isListening = false;
-let recognition;
+const addMessage = (role, content) => {
+  const msg = document.createElement("div");
+  msg.className = `message ${role}`;
+  msg.textContent = content;
+  chatEl.appendChild(msg);
+  chatEl.scrollTop = chatEl.scrollHeight;
+};
 
-function updateChatLog(content, sender) {
-  const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message', sender);
-  messageDiv.textContent = content;
-  chatLog.appendChild(messageDiv);
-  chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
-}
+const sendMessage = async (text) => {
+  addMessage("user", text);
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
+};
 
-// Check for browser support of SpeechRecognition
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.continuous = true; // Keep recognizing speech until stopped
-  recognition.interimResults = true; // Show results while still listening
+sendBtn.addEventListener("click", () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = "";
+  sendMessage(text);
+});
 
-  recognition.onstart = () => {
-    updateChatLog("Listening... Say something!", 'assistant');
-    startTalkingBtn.textContent = 'Listening. Click when Done.';
-  };
+// Voice Input (Web Speech API)
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = "en-US";
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
-  recognition.onresult = (event) => {
-    let transcript = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-    }
+// Trigger voice input when user presses Enter in input
+inputEl.addEventListener("focus", () => recognition.start());
+recognition.addEventListener("result", (e) => {
+  const transcript = e.results[0][0].transcript;
+  inputEl.value = transcript;
+  sendBtn.click();
+});
 
-    // Display the current transcript (real-time transcription)
-    updateChatLog(transcript, 'user');
-  };
-
-  recognition.onend = () => {
-    if (isListening) {
-      updateChatLog('Stopped listening.', 'assistant');
-      startTalkingBtn.textContent = 'Start talking';
-    }
-  };
-
-  recognition.onerror = (event) => {
-    updateChatLog('Error occurred: ' + event.error, 'assistant');
-    startTalkingBtn.textContent = 'Start talking';
-  };
-} else {
-  alert("Speech Recognition is not supported in this browser.");
-}
-
-startTalkingBtn.addEventListener('click', () => {
-  if (!isListening) {
-    recognition.start();
-    isListening = true;
-  } else {
-    recognition.stop();
-    isListening = false;
-  }
+// Load assistant's greeting on page load
+window.addEventListener("DOMContentLoaded", async () => {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "" }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
 });
