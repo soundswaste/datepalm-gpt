@@ -52,7 +52,7 @@ async function handler(req, res) {
       method: "POST",
       headers: headers,
       body: JSON.stringify({
-        assistant_id: "YOUR_ASSISTANT_ID", // 👈 Replace with your Assistant ID
+        assistant_id: "asst_O8bibYy4d6YYRmXSjOFpTqKW", // 👈 Replace with your Assistant ID
       }),
     });
 
