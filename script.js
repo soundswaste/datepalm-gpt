@@ -13,8 +13,15 @@ const addMessage = (role, content) => {
 };
 
 const sendMessage = async (text) => {
-  addMessage("user", text);
+  addMessage("user", text); // Show the user's message
   sendBtn.disabled = true;
+
+  // Add a "Thinking..." message from assistant
+  const thinkingMsg = document.createElement("div");
+  thinkingMsg.className = "message assistant thinking";  // Add class 'thinking'
+  thinkingMsg.textContent = "Thinking...";  // Set message text to "Thinking..."
+  chatEl.appendChild(thinkingMsg);
+  chatEl.scrollTop = chatEl.scrollHeight;
 
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -23,6 +30,12 @@ const sendMessage = async (text) => {
   });
 
   const data = await res.json();
+  addMessage("assistant", data.reply);
+
+  // Remove the "Thinking..." message after response comes back
+  chatEl.removeChild(thinkingMsg);  // Remove the "Thinking..." message
+
+  // Add assistant's reply
   addMessage("assistant", data.reply);
 };
 
