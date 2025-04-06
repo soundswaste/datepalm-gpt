@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   const { message } = req.body;
 
   try {
+    // Step 1: Create thread if it doesn't exist
     if (!threadId) {
       const threadRes = await fetch("https://api.openai.com/v1/threads", {
         method: "POST",
@@ -16,12 +17,19 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
         },
       });
+
+      if (!threadRes.ok) {
+        console.error("Error creating thread:", await threadRes.text());
+        return res.status(500).json({ reply: "Error creating thread" });
+      }
+
       const threadData = await threadRes.json();
       threadId = threadData.id;
     }
 
+    // Step 2: Send user's message to OpenAI if message exists
     if (message) {
-      await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      const msgRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -32,8 +40,14 @@ export default async function handler(req, res) {
           content: message,
         }),
       });
+
+      if (!msgRes.ok) {
+        console.error("Error sending message:", await msgRes.text());
+        return res.status(500).json({ reply: "Error sending message" });
+      }
     }
 
+    // Step 3: Run assistant to process the message
     const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
       method: "POST",
       headers: {
@@ -41,16 +55,23 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        assistant_id: "YOUR_ASSISTANT_ID", // 👈 Replace this
+        assistant_id: "asst_O8bibYy4d6YYRmXSjOFpTqKW", // 👈 Replace with your Assistant ID
       }),
     });
 
-    const runData = await runRes.json();
+    if (!runRes.ok) {
+      console.error("Error running assistant:", await runRes.text());
+      return res.status(500).json({ reply: "Error running assistant" });
+    }
 
-    // Wait until run is completed
+    const runData = await runRes.json();
+    
+    // Wait for assistant to complete the task
     let runStatus = runData.status;
-    while (runStatus !== "completed") {
-      await new Promise((r) => setTimeout(r, 1000));
+    let attempts = 0;
+
+    while (attempts < 10 && runStatus !== "completed") {
+      await new Promise((r) => setTimeout(r, 1500)); // wait 1.5 seconds
       const statusRes = await fetch(
         `https://api.openai.com/v1/threads/${threadId}/runs/${runData.id}`,
         {
@@ -59,11 +80,22 @@ export default async function handler(req, res) {
           },
         }
       );
+
+      if (!statusRes.ok) {
+        console.error("Error fetching run status:", await statusRes.text());
+        return res.status(500).json({ reply: "Error checking run status" });
+      }
+
       const statusData = await statusRes.json();
       runStatus = statusData.status;
+      attempts++;
     }
 
-    // Get messages
+    if (runStatus !== "completed") {
+      return res.status(504).json({ reply: "Assistant took too long to respond." });
+    }
+
+    // Step 4: Fetch the assistant's reply
     const msgRes = await fetch(
       `https://api.openai.com/v1/threads/${threadId}/messages`,
       {
@@ -73,14 +105,19 @@ export default async function handler(req, res) {
       }
     );
 
+    if (!msgRes.ok) {
+      console.error("Error fetching messages:", await msgRes.text());
+      return res.status(500).json({ reply: "Error fetching assistant messages" });
+    }
+
     const msgData = await msgRes.json();
     const lastMsg = msgData.data.find((m) => m.role === "assistant");
 
-    res.status(200).json({
+    return res.status(200).json({
       reply: lastMsg?.content?.[0]?.text?.value || "Hmm, no reply.",
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error in /api/chat:", err);
     res.status(500).json({ reply: "Something went wrong." });
   }
 }
