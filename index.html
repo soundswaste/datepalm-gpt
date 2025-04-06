@@ -1,94 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datepalm - Sage Advice for Early Dating</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      padding: 20px;
-      margin: 0;
-    }
+const chatEl = document.getElementById("chat");
+const inputEl = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-    #logo {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
+const addMessage = (role, content) => {
+  const msg = document.createElement("div");
+  msg.className = `message ${role}`;
+  msg.textContent = content;
+  chatEl.appendChild(msg);
+  chatEl.scrollTop = chatEl.scrollHeight;
+};
 
-    #chat-container {
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+const sendMessage = async (text) => {
+  addMessage("user", text);
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
+};
 
-    #chat-log {
-      max-height: 400px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding-right: 10px;
-    }
+sendBtn.addEventListener("click", () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = "";
+  sendMessage(text);
+});
 
-    .message {
-      margin-bottom: 10px;
-    }
+// Voice Input (Web Speech API)
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = "en-US";
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
 
-    .assistant {
-      color: #007bff;
-      font-weight: bold;
-    }
+// Trigger voice input when user presses Enter in input
+inputEl.addEventListener("focus", () => recognition.start());
+recognition.addEventListener("result", (e) => {
+  const transcript = e.results[0][0].transcript;
+  inputEl.value = transcript;
+  sendBtn.click();
+});
 
-    .user {
-      color: #28a745;
-      font-weight: bold;
-    }
-
-    #thinking {
-      font-style: italic;
-      color: #6c757d;
-      text-align: center;
-      margin-bottom: 10px;
-      display: none;
-    }
-
-    #user-input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-
-    #send-button {
-      padding: 12px 24px;
-      font-size: 18px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-    }
-
-  </style>
-</head>
-<body>
-
-  <div id="logo">datepalm - Sage Advice for Early Dating</div>
-
-  <div id="chat-container">
-    <div id="chat-log"></div>
-    <div id="thinking">Thinking...</div> <!-- Thinking animation -->
-    <textarea id="user-input" placeholder="Type your message..."></textarea>
-    <button id="send-button">Send</button>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+// Load assistant's greeting on page load
+window.addEventListener("DOMContentLoaded", async () => {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "" }),
+  });
+  const data = await res.json();
+  addMessage("assistant", data.reply);
+});
