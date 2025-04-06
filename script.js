@@ -30,7 +30,6 @@ const sendMessage = async (text) => {
   });
 
   const data = await res.json();
-  addMessage("assistant", data.reply);
 
   // Remove the "Thinking..." message after response comes back
   chatEl.removeChild(thinkingMsg);  // Remove the "Thinking..." message
