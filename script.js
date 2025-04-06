@@ -42,8 +42,7 @@ const sendMessage = async (text) => {
 // Voice Recognition
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "en-US";
-recognition.continuous = true; // Allow continuous speech input
-recognition.interimResults = true; // Enable interim results
+recognition.interimResults = false;
 recognition.maxAlternatives = 1;
 
 recognition.addEventListener("start", () => {
@@ -55,7 +54,7 @@ recognition.addEventListener("end", () => {
 });
 
 recognition.addEventListener("result", (e) => {
-  transcript += e.results[e.resultIndex][0].transcript + " "; //The transcription is now updated immediately as the user speaks (even while speaking)
+  transcript = e.results[0][0].transcript;
 
   // Remove old preview if exists
   const oldPreview = document.querySelector(".message.preview");
@@ -65,7 +64,7 @@ recognition.addEventListener("result", (e) => {
   const preview = document.createElement("div");
   preview.className = "message user preview";
   preview.innerHTML = `
-    <div class="text">${transcript.trim()}</div>
+    <div class="text">${transcript}</div>
     <div class="hint">Click 'Send' to send this message</div>
   `;
   chatEl.appendChild(preview);
@@ -85,7 +84,6 @@ sendBtn.addEventListener("click", () => {
   if (preview) preview.remove(); // Remove preview message
   sendMessage(transcript);
   transcript = "";
-  recognition.stop(); // stop listening after user clicks 'Send'
 });
 
 // Assistant greeting on load
