@@ -1,44 +1,90 @@
-export default async function handler(req, res) {
-  try {
-    const userInput = req.body.message;
+// /api/chat.js
 
-    // If user input is empty, return an error
-    if (!userInput || userInput.trim() === "") {
-      return res.status(400).json({ error: "No input provided" });
+let threadId = null; // In-memory (resets on each deployment)
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).end("Only POST requests allowed");
+  }
+
+  const { message } = req.body;
+
+  try {
+    // Step 1: Create a thread if it doesn't exist
+    if (!threadId) {
+      const threadRes = await fetch("https://api.openai.com/v1/threads", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      const threadData = await threadRes.json();
+      threadId = threadData.id;
     }
 
-    // Define your custom assistant model ID
-    const customModelId = "asst_O8bibYy4d6YYRmXSjOFpTqKW";  // Replace this with your specific model ID
-    console.log(customModelId);
-
-    // Call OpenAI API using the custom assistant model
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Step 2: Add user message to thread
+    await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: customModelId,  // Use your specific custom model here
-        messages: [
-          { role: "system", content: "You are a friendly and helpful assistant." },  // Optional system message
-          { role: "user", content: userInput },  // User's message
-        ],
-      }),
+        role: "user",
+        content: message
+      })
     });
 
-    // Check if the response is successful
-    if (!response.ok) {
-      throw new Error('Failed to fetch response from OpenAI');
+    // Step 3: Run the assistant on this thread
+    const runRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        assistant_id: "asst_O8bibYy4d6YYRmXSjOFpTqKW"
+      })
+    });
+
+    const runData = await runRes.json();
+
+    // Step 4: Poll the run status until it's complete
+    let runStatus = runData.status;
+    let finalRun;
+    while (runStatus !== "completed") {
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 sec
+      const checkRun = await fetch(`https://api.openai.com/v1/threads/${threadId}/runs/${runData.id}`, {
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        }
+      });
+      finalRun = await checkRun.json();
+      runStatus = finalRun.status;
+
+      if (runStatus === "failed" || runStatus === "cancelled") {
+        throw new Error("Run failed");
+      }
     }
 
-    const data = await response.json();
+    // Step 5: Get the messages
+    const msgRes = await fetch(`https://api.openai.com/v1/threads/${threadId}/messages`, {
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      }
+    });
 
-    // Send OpenAI's response back to the client
-    res.status(200).json({ reply: data.choices[0].message.content });
+    const msgData = await msgRes.json();
+    const lastMessage = msgData.data.find(m => m.role === "assistant");
 
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Something went wrong", details: error.message });
+    res.status(200).json({
+      reply: lastMessage?.content?.[0]?.text?.value || "Hmm, something went wrong."
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ reply: "Something went wrong. Please try again." });
   }
 }
