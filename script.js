@@ -101,6 +101,7 @@ sendBtn.addEventListener("click", () => {
 window.addEventListener("DOMContentLoaded", async () => {
 
   const warmingEl = document.getElementById("warming-up");
+  speakBtn.disabled = true; // Disable mic button during assistant response
 
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -111,6 +112,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Remove the warming message
   if (warmingEl) warmingEl.remove();
+  speakBtn.disabled = false; 
 
   addMessage("assistant", data.reply);
 });
