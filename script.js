@@ -96,11 +96,18 @@ sendBtn.addEventListener("click", () => {
 
 // Assistant greeting on load
 window.addEventListener("DOMContentLoaded", async () => {
+
+  const warmingEl = document.getElementById("warming-up");
+
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message: "" }),
   });
   const data = await res.json();
+
+  // Remove the warming message
+  if (warmingEl) warmingEl.remove();
+  
   addMessage("assistant", data.reply);
 });
