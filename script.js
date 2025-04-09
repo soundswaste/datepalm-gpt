@@ -3,6 +3,8 @@ const speakBtn = document.getElementById("speak-btn");
 const sendBtn = document.getElementById("send-btn");
 
 let transcript = ""; // Holds the transcribed text
+let isWaitingForResponse = false; // Track whether we're waiting for the assistant's response
+
 
 const addMessage = (role, content) => {
   const msg = document.createElement("div");
@@ -16,6 +18,9 @@ const sendMessage = async (text) => {
   addMessage("user", text); // Show the user's message
   sendBtn.disabled = true;
   speakBtn.disabled = true; // Disable mic button during assistant response
+    // Disable listening while waiting for the assistant's response
+    recognition.stop();
+    isWaitingForResponse = true;
 
   // Add a "Thinking..." message from assistant
   const thinkingMsg = document.createElement("div");
@@ -34,11 +39,13 @@ const sendMessage = async (text) => {
 
   // Remove the "Thinking..." message after response comes back
   chatEl.removeChild(thinkingMsg);  // Remove the "Thinking..." message
-  speakBtn.disabled = false;
-
 
   // Add assistant's reply
   addMessage("assistant", data.reply);
+
+  // Reactivate voice recognition after response
+  isWaitingForResponse = false;
+  speakBtn.disabled = false;
 };
 
 // Voice Recognition
@@ -112,7 +119,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Remove the warming message
   if (warmingEl) warmingEl.remove();
-  speakBtn.disabled = false; 
+  speakBtn.disabled = false; //re-enable speak buton
 
   addMessage("assistant", data.reply);
 });
