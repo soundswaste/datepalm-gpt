@@ -15,6 +15,7 @@ const addMessage = (role, content) => {
 const sendMessage = async (text) => {
   addMessage("user", text); // Show the user's message
   sendBtn.disabled = true;
+  speakBtn.disabled = true; // Disable mic button during assistant response
 
   // Add a "Thinking..." message from assistant
   const thinkingMsg = document.createElement("div");
@@ -33,6 +34,8 @@ const sendMessage = async (text) => {
 
   // Remove the "Thinking..." message after response comes back
   chatEl.removeChild(thinkingMsg);  // Remove the "Thinking..." message
+  speakBtn.disabled = false;
+
 
   // Add assistant's reply
   addMessage("assistant", data.reply);
@@ -108,6 +111,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Remove the warming message
   if (warmingEl) warmingEl.remove();
-  
+
   addMessage("assistant", data.reply);
 });
