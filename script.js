@@ -98,10 +98,12 @@ speakBtn.addEventListener("click", () => {
 
 sendBtn.addEventListener("click", () => {
   if (!transcript) return;
-  const preview = document.querySelector(".message.preview");
-  if (preview) preview.remove(); // Remove preview message
-  sendMessage(transcript);
-  transcript = "";
+  setTimeout(() => {
+    const preview = document.querySelector(".message.preview");
+    if (preview) preview.remove(); // Remove preview message
+    sendMessage(transcript);
+    transcript = "";
+  }, 300); //delay of 300 ms to ensure all transcribed text gets sent
 });
 
 // Assistant greeting on load
